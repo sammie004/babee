@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Heart } from "lucide-react";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 const ALLOWED_NAMES = ["moyin", "moyinoluwa", "mrs ndih", "elizabeth", "bubba"];
 
@@ -18,7 +20,7 @@ const CHAT_LINES = [
 
 const REASONS = [
   {
-    title: "the way you say \u201cbubba\u201d when you're annoyed",
+    title: "the way you say \u201cSAMUEL\u201d when you're annoyed",
     body: "and mean it anyway. that's when I know I'm actually in trouble \u2014 and somehow I still smile.",
   },
   {
@@ -42,9 +44,191 @@ const REASONS = [
     body: "it's the name I reach for when \u201cI like you a lot\u201d stops being enough.",
   },
 ];
+const DODGE_TAUNTS = [
+  "nuh uh",
+  "not today",
+  "try again",
+  "so close tho",
+  "almost had it",
+  "nope",
+  "yeah no",
+  "nice try",
+  "uhhh no",
+  "wrong move",
+  "not quite",
+  "you wish",
+  "keep dreaming",
+  "good effort",
+  "close one",
+  "missed me",
+  "too slow",
+  "maybe next time",
+  "hard pass",
+  "absolutely not",
+  "denied",
+  "blocked",
+  "no shot",
+  "think again",
+  "better luck next time",
+  "that's cute",
+  "nice attempt",
+  "you tried",
+  "not happening",
+  "try harder",
+  "almost 😭",
+  "erm... no",
+  "respectfully, no",
+  "i'll pass",
+  "caught in 4K",
+  "nice try though",
+  "whoops",
+  "nope nope nope",
+  "incorrect 💀",
+  "not this time",
+  "you almost cooked",
+  "and yet... no",
+  "better luck, champ",
+  "denied with love",
+  "absolutely cooked",
+  "mission failed",
+  "close but no",
+  "keep swinging",
+  "that's gonna be a no",
 
-const DODGE_TAUNTS = ["nuh uh", "not today", "try again", "so close tho", "almost had it", "nope", "yeah no"];
-
+  // New additions
+  "bro missed",
+  "swing and a miss",
+  "you gotta do better",
+  "skill issue",
+  "major skill issue",
+  "lagging?",
+  "is your ping okay?",
+  "bro aimed with his eyes closed",
+  "whiffed it",
+  "can't touch this",
+  "too easy",
+  "predictable",
+  "i saw that coming",
+  "read you like a book",
+  "nice pattern",
+  "same move again?",
+  "is that all?",
+  "boring",
+  "you can do better than that",
+  "seriously?",
+  "that's your plan?",
+  "good joke",
+  "next",
+  "keep em coming",
+  "weak",
+  "that was adorable",
+  "cute attack",
+  "pathetic",
+  "embarrassing",
+  "awkward...",
+  "you good?",
+  "blink and you missed",
+  "still missed",
+  "and miss",
+  "try aiming",
+  "have you considered aiming?",
+  "brother ewww",
+  "not even close",
+  "distance: maintained",
+  "access denied",
+  "permission denied",
+  "request rejected",
+  "error 404: hit not found",
+  "error 403: forbidden",
+  "attack failed successfully",
+  "task failed successfully",
+  "invalid target",
+  "outplayed",
+  "countered",
+  "anticipated",
+  "expected",
+  "calculated",
+  "too obvious",
+  "nice telegraph",
+  "saw it a mile away",
+  "that move is getting old",
+  "running out of ideas?",
+  "you're repeating yourself",
+  "yawn",
+  "zzz",
+  "wake me up when it lands",
+  "still waiting",
+  "any day now",
+  "you'll get one eventually",
+  "keep believing",
+  "faith is important",
+  "manifesting a hit?",
+  "delusion detected",
+  "confidence exceeded accuracy",
+  "you had one job",
+  "tragic",
+  "painful to watch",
+  "that hurt me emotionally",
+  "not the best look",
+  "unfortunate",
+  "deeply unfortunate",
+  "catastrophic miss",
+  "historic fumble",
+  "generational miss",
+  "hall of fame miss",
+  "world record miss",
+  "spectacular failure",
+  "incredible whiff",
+  "masterclass in missing",
+  "10/10 dodge",
+  "too clean",
+  "silky smooth",
+  "effortless",
+  "untouchable",
+  "built different",
+  "simply better",
+  "elite footwork",
+  "god-tier dodge",
+  "you can't catch me",
+  "catch me first",
+  "try sprinting",
+  "need a map?",
+  "over here",
+  "wrong direction",
+  "warmer...",
+  "colder...",
+  "free tip: aim better",
+  "you've got heart",
+  "not enough accuracy though",
+  "keep practicing",
+  "training arc needed",
+  "back to the tutorial",
+  "tutorial boss wins again",
+  "NPC behavior",
+  "rookie mistake",
+  "amateur hour",
+  "bronze rank behavior",
+  "silver energy",
+  "not beating the allegations",
+  "another one",
+  "and another miss",
+  "queue the sad music",
+  "that's rough buddy",
+  "better luck in the next patch",
+  "balance issue? nope",
+  "working as intended",
+  "get juked",
+  "sit down",
+  "stay humble",
+  "hold that L",
+  "L acquired",
+  "L secured",
+  "L collected",
+  "freshly delivered L",
+  "premium grade L",
+  "deluxe edition miss",
+  "legendary whiff unlocked"
+];
 const FINAL_LINES = ["I love you,", "today,", "tomorrow,", "and always."];
 
 function useFloatingHearts(count = 14) {
@@ -87,6 +271,22 @@ export default function LoveSite() {
   const yesContainerRef = useRef(null);
   const [showFinalMessage, setShowFinalMessage] = useState(false);
   const [finalLineIndex, setFinalLineIndex] = useState(0);
+
+  useEffect(() => {
+    AOS.init({
+      duration: 800,
+      once: true,
+      offset: 80,
+      easing: "ease-out-cubic",
+    });
+  }, []);
+
+  // content only mounts after unlock — AOS needs to re-scan for new elements
+  useEffect(() => {
+    if (unlocked) {
+      AOS.refresh();
+    }
+  }, [unlocked]);
 
   useEffect(() => {
     if (!unlocked) return;
@@ -992,7 +1192,7 @@ export default function LoveSite() {
             </div>
           </section>
 
-          <section className="content">
+          <section className="content" data-aos="fade-up">
             <div className="label">how it started</div>
             <h2 className="section-title">two blue ticks and a bit of nerve</h2>
             <p className="body-text">
@@ -1003,9 +1203,9 @@ export default function LoveSite() {
             </p>
           </section>
 
-          <div className="divider" />
+          <div className="divider" data-aos="fade-in" />
 
-          <section className="content heavy">
+          <section className="content heavy" data-aos="fade-up">
             <div className="label">the part I don't usually say</div>
             <h2 className="section-title">the night we almost weren't</h2>
             <p className="body-text">
@@ -1022,9 +1222,9 @@ export default function LoveSite() {
             </p>
           </section>
 
-          <div className="divider" />
+          <div className="divider" data-aos="fade-in" />
 
-          <section className="content">
+          <section className="content" data-aos="fade-up">
             <div className="label">things I keep noticing</div>
             <h2 className="section-title">reasons, in no particular order</h2>
             <div className="reasons">
@@ -1034,6 +1234,8 @@ export default function LoveSite() {
                   <div
                     className="reason-card"
                     key={i}
+                    data-aos="fade-up"
+                    data-aos-delay={i * 80}
                     onClick={() => setOpenReason(isOpen ? null : i)}
                   >
                     <div className="reason-head">
@@ -1051,9 +1253,9 @@ export default function LoveSite() {
             </div>
           </section>
 
-          <div className="divider" />
+          <div className="divider" data-aos="fade-in" />
 
-          <section className="finale">
+          <section className="finale" data-aos="zoom-in">
             <h2 className="serif">
               We almost didn't make it here. I'm so glad we did.
             </h2>
@@ -1068,9 +1270,9 @@ export default function LoveSite() {
             <div className="footer-note">bubba &middot; achalugo &middot; always</div>
           </section>
 
-          <div className="divider" />
+          <div className="divider" data-aos="fade-in" />
 
-          <section className="content door-zone">
+          <section className="content door-zone" data-aos="fade-up">
             <div className="label">before you go</div>
             <h2 className="section-title">actually, wait</h2>
             <p className="body-text" style={{ margin: "0 auto" }}>
